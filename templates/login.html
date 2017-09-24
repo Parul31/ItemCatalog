@@ -35,7 +35,7 @@
 						if(result) {
 							$('#result').html('Login Successful!<br>'+result+'<br>Redirecting....')
 							setTimeOut(function() {
-								windoww.local.href='/famouscities';
+								window.local.href='/famouscities';
 							},4000);
 						} else if(authResult['error']) {
 							console.log('there was an error: '+authResult['error'])
