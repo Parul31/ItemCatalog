@@ -32,7 +32,7 @@ def login():
 
 @app.route('/gconnect',methods=['POST'])
 def gconnect():
-        if requests.args.get('state') != login_seesion['state']:
+        if request.args.get('state') != login_session['state']:
 		response = make_response(json.dumps('Invalid state parameter'),401)
 		response.headers['Content-Type'] = 'application/json'
 		return response
@@ -91,26 +91,18 @@ def gconnect():
         login_session['picture'] = data['picture']
         login_session['email'] = data['email']
 
-        # ADD PROVIDER TO LOGIN SESSION
-        login_session['provider'] = 'google'
+        login_session['user_id'] = user_id
 
-        # see if user exists, if it doesn't make a new one
-        user_id = getUserID(data["email"])
-
-        if not user_id:
-                user_id = createUser(login_session)
-                login_session['user_id'] = user_id
-
-                output = ''
-                output += '<h1>Welcome, '
-                output += login_session['username']
-                output += '!</h1>'
-                output += '<img src="'
-                output += login_session['picture']
-                output += ' " style = "width: 300px; height: 300px;border-radius: 150px;-webkit-border-radius: 150px;-moz-border-radius: 150px;"> '
-                flash("you are now logged in as %s" % login_session['username'])
-                print "done!"
-                return output
+        output = ''
+        output += '<h1>Welcome, '
+        output += login_session['username']
+        output += '!</h1>'
+        output += '<img src="'
+        output += login_session['picture']
+        output += ' " style = "width: 300px; height: 300px;border-radius: 150px;-webkit-border-radius: 150px;-moz-border-radius: 150px;"> '
+        flash("you are now logged in as %s" % login_session['username'])
+        print "done!"
+        return output
 
 @app.route('/gdisconnect')
 def gdisconnect():
