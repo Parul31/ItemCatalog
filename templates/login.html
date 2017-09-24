@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Login</title>
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+
+	<script src="//apis.google.com/js/platform.js?onload=start" async defer> </script>
+</head>
+<body>
+<!-- GOOGLE PLUS SIGN IN-->
+
+	<div id="signInButton">
+		<span class="g-signin"
+		data-scope="openid email"
+		data-clientid="19542894944-fmii1d1klontu0rnni5jolnu990cu28u.apps.googleusercontent.com"
+		data-redirecturi="postmessage"
+		data-accesstype="offline"
+		data-cookiepolicy="single_host_origin"
+		data-callback="signInCallback"
+		data-approvalprompt="force">
+		</span>
+	</div>
+	<div id="result"></div>
+	<script>
+		function signInCallback(authResult) {
+			if (authResult['code']) {
+				$('#signInButton').attr('style','display:none');
+				$.ajax({
+					type: 'POST',
+					url: '/gconnect?state={{STATE}}'
+					processData: false,
+					contentType: 'application/octet-stream; charset=utf-8',
+					data: authResult['code'],
+					success: function(result) {
+						if(result) {
+							$('#result').html('Login Successful!<br>'+result+'<br>Redirecting....')
+							setTimeOut(function() {
+								windoww.local.href='/famouscities';
+							},4000);
+						} else if(authResult['error']) {
+							console.log('there was an error: '+authResult['error'])
+						} else {
+							$('result').html('Failed to make a server side call')
+						}
+					}
+				});
+			}
+		}
+	</script>
+</body>
+</html>
