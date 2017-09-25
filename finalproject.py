@@ -16,7 +16,7 @@ app = Flask(__name__)
 
 CLIENT_ID = json.loads(
     open('client_secrets.json', 'r').read())['web']['client_id']
-APPLICATION_NAME = "Restaurant Menu"
+APPLICATION_NAME = "Famous Cities Catalog"
 
 engine = create_engine('sqlite:///famousplaces.db')
 Base.metadata.bind = engine
@@ -26,7 +26,8 @@ session = DBSession()
 
 @app.route('/login')
 def login():
-	state = ''.join(random.choice(string.ascii_uppercase + string.digits)for x in xrange(32))
+	state = ''.join(
+                random.choice(string.ascii_uppercase + string.digits)for x in range(32))
 	login_session['state'] = state
 	return render_template('login.html',STATE=state)
 
@@ -36,7 +37,9 @@ def gconnect():
 		response = make_response(json.dumps('Invalid state parameter'),401)
 		response.headers['Content-Type'] = 'application/json'
 		return response
-	code = request.data
+	# obtain authorization code
+	request.get_data()
+	code = request.data.decode('utf-8')
 
 	try:
 		# Upgrade the authorization code into a credentials object
@@ -44,7 +47,8 @@ def gconnect():
 		oauth_flow.redirect_uri = 'postmessage'
 		credentials = oauth_flow.step2_exchange(code)
 	except FlowExchangeError:
-		response = make_response(json.dumps('Failed to upgrade the authorization code.'), 401)
+		response = make_response(
+                        json.dumps('Failed to upgrade the authorization code.'), 401)
 		response.headers['Content-Type'] = 'application/json'
 		return response
 
@@ -53,7 +57,10 @@ def gconnect():
 	url = ('https://www.googleapis.com/oauth2/v1/tokeninfo?access_token=%s'
            % access_token)
 	h = httplib2.Http()
-	result = json.loads(h.request(url, 'GET')[1])
+	response = h.request(url,'GET')[1]
+	str_response = response.decode('utf-8')
+	result = json.loads(str_response)
+	
 	# If there was an error in the access token info, abort.
 	if result.get('error') is not None:
 		response = make_response(json.dumps(result.get('error')), 500)
@@ -68,6 +75,14 @@ def gconnect():
                         json.dumps("Token's user ID doesn't match given user ID."), 401)
                 response.headers['Content-Type'] = 'application/json'
                 return response
+
+        # Verify that the access token is valid for this app
+        if result['issued_to'] != CLIENT_ID:
+                response = make_response(
+                        json.dumps("Token's client ID does not match app's."), 401)
+                response.headers['Content-Type'] = 'application/json'
+                return response
+
         stored_access_token = login_session.get('access_token')
         stored_gplus_id = login_session.get('gplus_id')
         if stored_access_token is not None and gplus_id == stored_gplus_id:
