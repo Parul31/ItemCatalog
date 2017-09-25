@@ -34,6 +34,34 @@ city4 = FamousCities(name='Chandigarh')
 session.add(city4)
 session.commit()
 
+city5 = FamousCities(name='Kolkata')
 
+session.add(city5)
+session.commit()
+
+city6 = FamousCities(name='Agra')
+
+session.add(city6)
+session.commit()
+
+city7 = FamousCities(name='Chennai')
+
+session.add(city7)
+session.commit()
+
+city8 = FamousCities(name='Varanasi')
+
+session.add(city8)
+session.commit()
+
+city9 = FamousCities(name='Amritsar')
+
+session.add(city9)
+session.commit()
+
+city10 = FamousCities(name='Pondicherry')
+
+session.add(city10)
+session.commit()
 
 print "added famous cities!"
