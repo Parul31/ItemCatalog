@@ -163,7 +163,7 @@ def addNewPlace(city_name):
                 return redirect('/login')
         city = session.query(FamousCities).filter_by(name=city_name).one()
 	if request.method=='POST':
-		new_place = FamousPlaces(name=request.form['newPlace'],
+		new_place = FamousPlaces(name=request.form['name'],
                                          description=request.form['description'],
                                          address=request.form['address'],
                                          famous_city=city_name,
