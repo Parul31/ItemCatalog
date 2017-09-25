@@ -166,7 +166,7 @@ def addNewPlace(city_name):
 		new_place = FamousPlaces(name=request.form['name'],
                                          description=request.form['description'],
                                          address=request.form['address'],
-                                         famous_city=city_name,
+                                         famous_city_id=city.id,
                                          user_id=login_session['user_id'])
 		session.add(new_place)
 		session.commit()
