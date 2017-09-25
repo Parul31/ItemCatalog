@@ -11,8 +11,13 @@
 <body>
 	<header>
 		<nav class="navbar navbar-light bg-light justify-content-between">
-		  <a class="navbar-brand">Item Catalog</a>
+			<a class="navbar-brand">
+		  		Item Catalog
+		  	</a>
 		  <form class="form-inline">
+		  <a class="navbar-brand">
+		  	<img src="{{creator.picture}}" width="30" height="30" alt="">
+		  </a>
 		  	{%if 'username' not in session %}
 		    <a href="{{url_for('login')}}">Login</a>
 		   	{% else %}
@@ -21,6 +26,12 @@
 		  </form>
 		</nav>
 	</header>
+	<div class="jumbotron">
+  		<h1 class="display-3">Famous Cities Catalog</h1>
+  		<p class="lead">The catalog consists of a list of famous cities in India. Each city has a list of some famous places to visit.</p>
+  		<hr class="my-4">
+  		<p>Login to your account to add new places in your city!</p>
+	</div>
 	{% block content %}
 	
 	{% endblock %}

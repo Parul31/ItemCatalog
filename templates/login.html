@@ -1,3 +1,5 @@
+{% extends "layout.html" %}
+{% block content %}
 <!DOCTYPE html>
 <html>
 <head>
@@ -7,7 +9,11 @@
 	<script src="//apis.google.com/js/platform.js?onload=start" async defer> </script>
 </head>
 <body>
-<!-- GOOGLE PLUS SIGN IN-->
+<div class="card" style="width: 26rem;">
+  <div class="card-body">
+    <h4 class="card-title">SIGNIN TO ADD NEW PLACES!</h4>
+    <p class="card-text">Choose your Google account to login.</p>
+   <!-- GOOGLE PLUS SIGN IN-->
 
 	<div id="signInButton">
 		<span class="g-signin"
@@ -20,6 +26,9 @@
 		data-approvalprompt="force">
 		</span>
 	</div>
+  </div>
+</div>
+
 	<div id="result"></div>
 	<script>
 		function signInCallback(authResult) {
@@ -36,7 +45,7 @@
 							$('#result').html('Login Successful!<br>'+result+'<br>Redirecting....')
 							setTimeout(function() {
 								window.location.href='/famouscities';
-							},4000);
+							},3000);
 						} else if(authResult['error']) {
 							console.log('there was an error: '+authResult['error'])
 						} else {
@@ -49,3 +58,4 @@
 	</script>
 </body>
 </html>
+{% endblock %}

@@ -3,7 +3,8 @@
 <div class="container">
 	<div class="row">
 		<div class="col-md-6">
-
+			<p><h4>Look for your city!</h4></p>
+			
 			{% for city in cities %}
 
 			<p><a href="{{url_for('showFamousPlaces',city_name=city.name)}}">{{city.name}}</a></p>
@@ -16,6 +17,9 @@
 		    	<a class="alert alert-primary" href="{{url_for('addNewPlace',city_name=this_city)}}">Add New</a>
 		  	</p>
 
+		  	<p>
+		  		<p><h4>Must visit them in {{this_city}}:</h4></p>
+		  	</p>
 			{% for place in places %}
 
 			<p><a href="{{url_for('showPlaceDescription',city_name=this_city,place_name=place.name)}}">{{place.name}}</a></p>
