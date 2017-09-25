@@ -7,7 +7,7 @@
 		<h3>Add new place in {{this_city}}</h3>
 			<form action="{{url_for('addNewPlace',city_name=this_city)}}" method="post">
 				<div class="form-group">
-					<input type="text" class="form-control" name="newPlace" placeholder="name">
+					<input type="text" class="form-control" name="name" placeholder="name">
 				</div>
 				<div class="form-group">
 				    <textarea class="form-control" name="description" rows="3" placeholder="description"></textarea>
