@@ -7,6 +7,14 @@ from sqlalchemy import create_engine
 
 Base = declarative_base()
 
+class User(Base):
+        __tablename__ = 'user'
+
+        id = Column(Integer, primary_key=True)
+        name = Column(String(250), nullable=False)
+        email = Column(String(250), nullable=False)
+        picture = Column(String(250))
+
 class FamousCities(Base):
 	__tablename__ = 'famous_cities'
 
@@ -17,9 +25,9 @@ class FamousCities(Base):
 	def serialize(self):
 		"""Return object data in easily serializeable format"""
 		return {
-			'name': self.name,
-        	'id': self.id,
-        }
+                        'name': self.name,
+                        'id': self.id,
+                        }
 
 class FamousPlaces(Base):
 	__tablename__ = 'famous_places'
@@ -30,16 +38,18 @@ class FamousPlaces(Base):
 	address = Column(String(250))
 	famous_city_id = Column(Integer, ForeignKey('famous_cities.id'))
 	famous_city = relationship(FamousCities)
+	user_id = Column(Integer,ForeignKey('user.id'))
+	user = relationship(User)
 
 	@property
 	def serialize(self):
 		"""Return object data in easily serializeable format"""
 		return {
-            'name': self.name,
-            'description': self.description,
-            'id': self.id,
-            'address': self.address
-        }
+                        'name': self.name,
+                        'description': self.description,
+                        'id': self.id,
+                        'address': self.address
+                        }
 
 engine = create_engine('sqlite:///famousplaces.db')
 

@@ -9,12 +9,6 @@
 			<p><h4>Description:</h4>{{this_place.description}}</p>
 			<p><h4>Address:</h4>{{this_place.address}}</p>
 			<br>
-			<p>
-
-		    	<a class="alert alert-primary" href="{{url_for('editPlace',city_name=this_city,place_name=this_place.name)}}">Edit</a>
-		    	<a class="alert alert-primary" href="{{url_for('deletePlace',city_name=this_city,place_name=this_place.name)}}">Delete</a>
-
-			</p>
 			<p><a href="{{url_for('showFamousPlaces',city_name=this_city)}}">BACK</a></p>
 		</div>
 	</div>

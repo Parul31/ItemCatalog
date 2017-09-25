@@ -1,7 +1,7 @@
-from flask import Flask, render_template, request, redirect, jsonify, url_for
+from flask import Flask, render_template, request, redirect, jsonify, url_for, flash
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from database_setup import Base, FamousCities, FamousPlaces
+from database_setup import Base, FamousCities, FamousPlaces, User
 from flask import session as login_session
 import random
 import string
@@ -57,8 +57,8 @@ def gconnect():
 	# If there was an error in the access token info, abort.
 	if result.get('error') is not None:
 		response = make_response(json.dumps(result.get('error')), 500)
-        response.headers['Content-Type'] = 'application/json'
-        return response
+		response.headers['Content-Type'] = 'application/json'
+		return response
 
         # Verify that the access token is used for the intended user.
         gplus_id = credentials.id_token['sub']
@@ -91,7 +91,11 @@ def gconnect():
         login_session['picture'] = data['picture']
         login_session['email'] = data['email']
 
+        user_id = getUserId(login_session['email'])
+        if not user_id:
+                user_id = createUser(login_session)
         login_session['user_id'] = user_id
+        
 
         output = ''
         output += '<h1>Welcome, '
@@ -124,7 +128,7 @@ def gdisconnect():
                 del login_session['picture']
                 response = make_response(json.dumps('Successfully disconnected.'), 200)
                 response.headers['Content-Type'] = 'application/json'
-                return response
+                return redirect('/famouscities')
         else:
                 response = make_response(json.dumps('Failed to revoke token for given user.', 400))
                 response.headers['Content-Type'] = 'application/json'
@@ -147,22 +151,23 @@ def showFamousPlaces(city_name):
 @app.route('/catalog/<string:city_name>/<string:place_name>')
 def showPlaceDescription(city_name,place_name):
 	this_place = session.query(FamousPlaces).filter_by(name=place_name).one()
-	return render_template('showdesc.html',this_place=this_place,this_city=city_name)
-
-@app.route('/catalog/city/new',methods=['GET','POST'])
-def addNewCity():
-	if request.method=='POST':
-		new_city = FamousCities(name=request.form['newCity'])
-		session.add(new_city)
-		session.commit()
-		return redirect(url_for('allFamousCities'))
-	else:
-		return render_template('newcity.html')
+	creator = getUserInfo(this_place.user_id)
+	if 'username' not in login_session or creator.id != login_session['user_id']:
+                return render_template('showdescpublic.html',this_place=this_place, this_city=city_name)
+        else:
+                return render_template('showdesc.html',this_place=this_place,this_city=city_name)
 
 @app.route('/catalog/<string:city_name>/place/new',methods=['GET','POST'])
 def addNewPlace(city_name):
+        if 'username' not in login_session:
+                return redirect('/login')
+        city = session.query(FamousCities).filter_by(name=city_name).one()
 	if request.method=='POST':
-		new_place = FamousPlaces(name=request.form['newPlace'],description=request.form['description'],address=request.form['address'],famous_city=city_name)
+		new_place = FamousPlaces(name=request.form['newPlace'],
+                                         description=request.form['description'],
+                                         address=request.form['address'],
+                                         famous_city=city_name,
+                                         user_id=login_session['user_id'])
 		session.add(new_place)
 		session.commit()
 		return redirect(url_for('showFamousPlaces',city_name=city_name))
@@ -171,7 +176,11 @@ def addNewPlace(city_name):
 
 @app.route('/catalog/<string:city_name>/<string:place_name>/edit',methods=['GET','POST'])
 def editPlace(city_name,place_name):
-	place_to_edit = session.query(FamousPlaces).filter_by(name=place_name).one()
+        place_to_edit = session.query(FamousPlaces).filter_by(name=place_name).one()
+        creator = getUserInfo(place_to_edit.user_id)
+        if 'username' not in login_session or creator.id != login_session['user_id']:
+                return render_template('showdescpublic.html',this_place=place_to_edit,this_city=city_name)
+        
 	if request.method=='POST':
 		if request.form['name']:
 			place_to_edit.name = request.form['name']
@@ -183,17 +192,40 @@ def editPlace(city_name,place_name):
 		session.commit()
 		return redirect(url_for('showPlaceDescription',city_name=city_name,place_name=place_name))
 	else:
-		return render_template('editplace.html',this_place=place_to_edit)
+		return render_template('editplace.html',this_place=place_to_edit,this_city=city_name)
 
 @app.route('/catalog/<string:city_name>/<string:place_name>/delete', methods=['GET','POST'])
 def deletePlace(city_name,place_name):
-	place_to_delete = session.query(FamousPlaces).filter_by(name=place_name).one()
+        place_to_delete = session.query(FamousPlaces).filter_by(name=place_name).one()
+        creator = getUserInfo(place_to_delete.user_id)
+        if 'username' not in login_session or creator.id != login_session['user_id']:
+                return render_template('showdescpublic.html',this_place=place_to_delete,this_city=city_name)
+
 	if request.method == 'POST':
 		session.delete(place_to_delete)
 		session.commit()
 		return redirect(url_for('showFamousPlaces',city_name=city_name))
 	else:
 		return render_template('deleteplace.html',this_place=place_to_delete,this_city=city_name)
+
+def getUserId(email):
+        try:
+                user = session.query(User).filter_by(email=email).one()
+                return user.id
+        except:
+                return None
+
+def getUserInfo(user_id):
+        user = session.query(User).filter_by(id=user_id).one()
+        return user
+
+def createUser(login_session):
+        newUser = User(name=login_session['username'], email=login_session['email'],
+                       picture=login_session['picture'])
+        session.add(newUser)
+        session.commit()
+        user = session.query(User).filter_by(email=login_session['email']).one()
+        return user.id
 
 if __name__ == '__main__':
 	app.secret_key = 'super_secret_key'

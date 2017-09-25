@@ -12,7 +12,7 @@
 	<div id="signInButton">
 		<span class="g-signin"
 		data-scope="openid email"
-		data-clientid="19542894944-fmii1d1klontu0rnni5jolnu990cu28u.apps.googleusercontent.com"
+		data-clientid="1013841417797-2rcl29dt1ms3mpae7sq6dp530aj5k6ea.apps.googleusercontent.com"
 		data-redirecturi="postmessage"
 		data-accesstype="offline"
 		data-cookiepolicy="single_host_origin"
@@ -27,15 +27,15 @@
 				$('#signInButton').attr('style','display:none');
 				$.ajax({
 					type: 'POST',
-					url: '/gconnect?state={{STATE}}'
+					url: '/gconnect?state={{STATE}}',
 					processData: false,
 					contentType: 'application/octet-stream; charset=utf-8',
 					data: authResult['code'],
 					success: function(result) {
 						if(result) {
 							$('#result').html('Login Successful!<br>'+result+'<br>Redirecting....')
-							setTimeOut(function() {
-								window.local.href='/famouscities';
+							setTimeout(function() {
+								window.location.href='/famouscities';
 							},4000);
 						} else if(authResult['error']) {
 							console.log('there was an error: '+authResult['error'])
