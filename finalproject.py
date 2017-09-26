@@ -1,3 +1,4 @@
+# -*- coding: cp1252 -*-
 from flask import Flask, render_template, request, redirect
 from flask import jsonify, url_for, flash
 from sqlalchemy import create_engine, asc
@@ -12,6 +13,7 @@ import httplib2
 import json
 from flask import make_response
 import requests
+from functools import wraps
 
 app = Flask(__name__)
 
@@ -175,6 +177,17 @@ def gconnect():
         print "done!"
         return output
 
+# decorator function to manage authorization and authentication
+def login_required(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+                if 'username' in login_session:
+                        return f(*args, **kwargs)
+                else:
+                        flash("You are not allowed to access there")
+                        return redirect('/login')
+        return decorated_function
+
 
 # url for log out
 @app.route('/gdisconnect')
@@ -273,9 +286,10 @@ def showPlaceDescription(city_name, place_name):
 
 # to add a new place in a city
 @app.route('/catalog/<string:city_name>/place/new', methods=['GET', 'POST'])
+
+@login_required
+
 def addNewPlace(city_name):
-        if 'username' not in login_session:
-                return redirect('/login')
         city = session.query(FamousCities).filter_by(name=city_name).one()
         login_user = getUserInfo(login_session['user_id'])
         if request.method == 'POST':
@@ -298,13 +312,15 @@ def addNewPlace(city_name):
 @app.route(
         '/catalog/<string:city_name>/<string:place_name>/<int:place_id>/edit',
         methods=['GET', 'POST'])
+
+@login_required
+
 def editPlace(city_name, place_name, place_id):
         place_to_edit = session.query(FamousPlaces).filter_by(
                 id=place_id).one()
         creator = getUserInfo(place_to_edit.user_id)
         # only the authorised user can edit the datails
-        if ('username' not in login_session or creator.id != login_session[
-                'user_id']):
+        if creator.id != login_session['user_id']:
                 return render_template('showdescpublic.html',
                                        this_place=place_to_edit,
                                        this_city=city_name, creator=creator)
@@ -332,13 +348,15 @@ def editPlace(city_name, place_name, place_id):
 # url to delete a place from the database
 @app.route('/catalog/<string:city_name>/<string:place_name>'
            '/delete', methods=['GET', 'POST'])
+
+@login_required
+
 def deletePlace(city_name, place_name):
         place_to_delete = session.query(FamousPlaces).filter_by(
                 name=place_name).one()
         creator = getUserInfo(place_to_delete.user_id)
         # only the authorised user can delete the entry in database
-        if ('username' not in login_session or creator.id != login_session[
-                'user_id']):
+        if creator.id != login_session['user_id']:
                 return render_template('showdescpublic.html',
                                        this_place=place_to_delete,
                                        this_city=city_name,
