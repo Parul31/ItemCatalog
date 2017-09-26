@@ -177,6 +177,7 @@ def gconnect():
         print "done!"
         return output
 
+
 # decorator function to manage authorization and authentication
 def login_required(f):
         @wraps(f)
@@ -286,9 +287,7 @@ def showPlaceDescription(city_name, place_name):
 
 # to add a new place in a city
 @app.route('/catalog/<string:city_name>/place/new', methods=['GET', 'POST'])
-
 @login_required
-
 def addNewPlace(city_name):
         city = session.query(FamousCities).filter_by(name=city_name).one()
         login_user = getUserInfo(login_session['user_id'])
@@ -312,9 +311,7 @@ def addNewPlace(city_name):
 @app.route(
         '/catalog/<string:city_name>/<string:place_name>/<int:place_id>/edit',
         methods=['GET', 'POST'])
-
 @login_required
-
 def editPlace(city_name, place_name, place_id):
         place_to_edit = session.query(FamousPlaces).filter_by(
                 id=place_id).one()
@@ -348,9 +345,7 @@ def editPlace(city_name, place_name, place_id):
 # url to delete a place from the database
 @app.route('/catalog/<string:city_name>/<string:place_name>'
            '/delete', methods=['GET', 'POST'])
-
 @login_required
-
 def deletePlace(city_name, place_name):
         place_to_delete = session.query(FamousPlaces).filter_by(
                 name=place_name).one()
