@@ -40,7 +40,7 @@ class FamousPlaces(Base):
         description = Column(String(500))
         address = Column(String(250))
         famous_city_id = Column(Integer, ForeignKey('famous_cities.id'))
-        famous_city = relationship(FamousCities)
+        famous_city = relationship(FamousCities, cascade="all, delete-orphan")
         user_id = Column(Integer, ForeignKey('user.id'))
         user = relationship(User)
 
