@@ -25,12 +25,14 @@ Base.metadata.bind = engine
 DBSession = sessionmaker(bind=engine)
 session = DBSession()
 
+# JSON endpoint to get details of a particular place in a city
 @app.route('/<string:city_name>/<string:place_name>/JSON')
 def thefamousplaceJSON(city_name, place_name):
         place = session.query(FamousPlaces).filter_by(
                 name=place_name).one()
         return jsonify(place=[place.serialize])
 
+# JSON endpoint to get all places in a city
 @app.route('/<string:city_name>/places/JSON')
 def famousplacesJSON(city_name):
         city = session.query(FamousCities).filter_by(
@@ -41,12 +43,14 @@ def famousplacesJSON(city_name):
         return jsonify(places=[i.serialize for i in places])
 
 
+# JSON endpoint to get list of cities in the database 
 @app.route('/famouscities/JSON')
 def famouscitiesJSON():
         cities = session.query(FamousCities).all()
         return jsonify(cities=[r.serialize for r in cities])
 
 
+# url for login
 @app.route('/login')
 def login():
         state = ''.join(
@@ -56,6 +60,7 @@ def login():
         return render_template('login.html', STATE=state, creator='')
 
 
+# url for gconnect
 @app.route('/gconnect', methods=['POST'])
 def gconnect():
         if request.args.get('state') != login_session['state']:
@@ -183,6 +188,7 @@ def gconnect():
 print "I am here 19"
 
 
+# url for log out
 @app.route('/gdisconnect')
 def gdisconnect():
         # Only disconnect a connected user.
@@ -223,6 +229,7 @@ def gdisconnect():
                 return response
 
 
+# homepage url
 @app.route('/')
 @app.route('/famouscities')
 def allFamousCities():
@@ -239,6 +246,7 @@ def allFamousCities():
                                creator=login_user)
 
 
+# url to get lit of places in the city = city_name
 @app.route('/catalog/<string:city_name>/places')
 def showFamousPlaces(city_name):
         cities = session.query(FamousCities).all()
@@ -258,6 +266,7 @@ def showFamousPlaces(city_name):
                                        this_city=city_name, creator=login_user)
 
 
+# url to get details of a particular place in a city
 @app.route('/catalog/<string:city_name>/<string:place_name>')
 def showPlaceDescription(city_name, place_name):
         this_place = session.query(FamousPlaces).filter_by(
@@ -277,6 +286,7 @@ def showPlaceDescription(city_name, place_name):
                                        this_city=city_name, creator=creator)
 
 
+# to add a new place in a city
 @app.route('/catalog/<string:city_name>/place/new', methods=['GET', 'POST'])
 def addNewPlace(city_name):
         if 'username' not in login_session:
@@ -299,12 +309,14 @@ def addNewPlace(city_name):
                                        this_city=city_name, creator=login_user)
 
 
+# to edit a place name, description, address
 @app.route('/catalog/<string:city_name>/<string:place_name>/<int:place_id>/edit',
            methods=['GET', 'POST'])
 def editPlace(city_name, place_name, place_id):
         place_to_edit = session.query(FamousPlaces).filter_by(
                 id=place_id).one()
         creator = getUserInfo(place_to_edit.user_id)
+        # only the authorised user can edit the datails
         if ('username' not in login_session or
             creator.id != login_session['user_id']):
                 return render_template('showdescpublic.html',
@@ -331,12 +343,14 @@ def editPlace(city_name, place_name, place_id):
                                        creator=creator)
 
 
+# url to delete a place from the database
 @app.route('/catalog/<string:city_name>/<string:place_name>'
            '/delete', methods=['GET', 'POST'])
 def deletePlace(city_name, place_name):
         place_to_delete = session.query(FamousPlaces).filter_by(
                 name=place_name).one()
         creator = getUserInfo(place_to_delete.user_id)
+        # only the authorised user can delete the entry in database
         if ('username' not in login_session or
             creator.id != login_session['user_id']):
                 return render_template('showdescpublic.html',
@@ -356,6 +370,7 @@ def deletePlace(city_name, place_name):
                                        creator=creator)
 
 
+# returns the user id
 def getUserId(email):
         try:
                 user = session.query(User).filter_by(email=email).one()
@@ -364,11 +379,13 @@ def getUserId(email):
                 return None
 
 
+# returns the user information
 def getUserInfo(user_id):
         user = session.query(User).filter_by(id=user_id).one()
         return user
 
 
+# returns the user id after adding a new user in the database
 def createUser(login_session):
         newUser = User(name=login_session['username'],
                        email=login_session['email'],
