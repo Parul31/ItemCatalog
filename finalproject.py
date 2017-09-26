@@ -25,12 +25,14 @@ Base.metadata.bind = engine
 DBSession = sessionmaker(bind=engine)
 session = DBSession()
 
+
 # JSON endpoint to get details of a particular place in a city
 @app.route('/<string:city_name>/<string:place_name>/JSON')
 def thefamousplaceJSON(city_name, place_name):
         place = session.query(FamousPlaces).filter_by(
                 name=place_name).one()
         return jsonify(place=[place.serialize])
+
 
 # JSON endpoint to get all places in a city
 @app.route('/<string:city_name>/places/JSON')
@@ -43,7 +45,7 @@ def famousplacesJSON(city_name):
         return jsonify(places=[i.serialize for i in places])
 
 
-# JSON endpoint to get list of cities in the database 
+# JSON endpoint to get list of cities in the database
 @app.route('/famouscities/JSON')
 def famouscitiesJSON():
         cities = session.query(FamousCities).all()
@@ -64,7 +66,6 @@ def login():
 @app.route('/gconnect', methods=['POST'])
 def gconnect():
         if request.args.get('state') != login_session['state']:
-                print "I am here 1"
                 response = make_response(json.dumps(
                         'Invalid state parameter'), 401)
                 response.headers['Content-Type'] = 'application/json'
@@ -74,14 +75,12 @@ def gconnect():
 
         try:
                 # Upgrade the authorization code into a credentials object
-                print "I am here 2"
                 oauth_flow = flow_from_clientsecrets(
                         'client_secrets.json', scope='')
                 oauth_flow.redirect_uri = 'postmessage'
                 credentials = oauth_flow.step2_exchange(code)
 
         except FlowExchangeError:
-                print "I am here 3"
                 response = make_response(
                         json.dumps(
                                 'Failed to upgrade the authorization code.'),
@@ -90,7 +89,6 @@ def gconnect():
                 return response
 
         # Check that the access token is valid.
-        print "I am here 4"
         access_token = credentials.access_token
         url = (
                 'https://www.googleapis.com/oauth2/v1/'
@@ -100,30 +98,25 @@ def gconnect():
         response = h.request(url, 'GET')[1]
         str_response = response.decode('utf-8')
         result = json.loads(str_response)
-        print "I am here 5"
 
         # If there was an error in the access token info, abort.
         if result.get('error') is not None:
-                print "I am here 6"
                 response = make_response(json.dumps(result.get('error')), 500)
                 response.headers['Content-Type'] = 'application/json'
                 return response
-        print "I am here 7"
 
         # Verify that the access token is used for the intended user.
         gplus_id = credentials.id_token['sub']
         if result['user_id'] != gplus_id:
-                print "I am here 8"
                 response = make_response(
                         json.dumps("Token's user ID doesn't match given "
                                    "user ID."), 401)
                 response.headers['Content-Type'] = 'application/json'
                 return response
-        print "I am here 9"
 
         # Verify that the access token is valid for this app
         if result['issued_to'] != CLIENT_ID:
-                print "I am here 10"
+
                 print "inside client-id"
                 response = make_response(
                         json.dumps("Token's client ID does not"
@@ -131,14 +124,14 @@ def gconnect():
                 response.headers['Content-Type'] = 'application/json'
                 return response
         print access_token
-        print "I am here 11"
+
         stored_access_token = login_session.get('access_token')
         stored_gplus_id = login_session.get('gplus_id')
         # Store the access token in the session for later use.
         login_session['access_token'] = credentials.access_token
-        print "I am here 12"
+
         if stored_access_token is not None and gplus_id == stored_gplus_id:
-                print "I am here 13"
+
                 print "inside stored-access-token not none"
                 print access_token
                 response = make_response(json.dumps('Current user is '
@@ -146,7 +139,6 @@ def gconnect():
                                          200)
                 response.headers['Content-Type'] = 'application/json'
                 return response
-        print "I am here 14"
 
         # Store the access token in the session for later use.
         login_session['gplus_id'] = gplus_id
@@ -155,7 +147,6 @@ def gconnect():
         userinfo_url = "https://www.googleapis.com/oauth2/v1/userinfo"
         params = {'access_token': credentials.access_token, 'alt': 'json'}
         answer = requests.get(userinfo_url, params=params)
-        print "I am here 15"
 
         data = answer.json()
 
@@ -164,14 +155,12 @@ def gconnect():
         login_session['email'] = data['email']
 
         user_id = getUserId(login_session['email'])
-        print "I am here 16"
 
         if not user_id:
-                print "I am here 17"
+
                 user_id = createUser(login_session)
 
         login_session['user_id'] = user_id
-        print "I am here 18"
 
         output = ''
         output += '<h1>Welcome, '
@@ -185,7 +174,6 @@ def gconnect():
         flash("you are now logged in as %s" % login_session['username'])
         print "done!"
         return output
-print "I am here 19"
 
 
 # url for log out
@@ -207,9 +195,7 @@ def gdisconnect():
         print url
         print "I am here 22"
         h = httplib2.Http()
-        result,content = h.request(url, 'GET')
-        print result
-        print content
+        result, content = h.request(url, 'GET')
         if result['status'] == '200':
                 print "I am here 24"
                 del login_session['access_token']
@@ -241,12 +227,11 @@ def allFamousCities():
                 print "I am here"
                 print login_session['email']
                 login_user = getUserInfo(login_session['user_id'])
-                
                 return render_template('showallcities.html', cities=cities,
-                               creator=login_user)
+                                       creator=login_user)
 
 
-# url to get lit of places in the city = city_name
+# url to get list of places in the city = city_name
 @app.route('/catalog/<string:city_name>/places')
 def showFamousPlaces(city_name):
         cities = session.query(FamousCities).all()
@@ -310,15 +295,16 @@ def addNewPlace(city_name):
 
 
 # to edit a place name, description, address
-@app.route('/catalog/<string:city_name>/<string:place_name>/<int:place_id>/edit',
-           methods=['GET', 'POST'])
+@app.route(
+        '/catalog/<string:city_name>/<string:place_name>/<int:place_id>/edit',
+        methods=['GET', 'POST'])
 def editPlace(city_name, place_name, place_id):
         place_to_edit = session.query(FamousPlaces).filter_by(
                 id=place_id).one()
         creator = getUserInfo(place_to_edit.user_id)
         # only the authorised user can edit the datails
-        if ('username' not in login_session or
-            creator.id != login_session['user_id']):
+        if ('username' not in login_session or creator.id != login_session[
+                'user_id']):
                 return render_template('showdescpublic.html',
                                        this_place=place_to_edit,
                                        this_city=city_name, creator=creator)
@@ -351,8 +337,8 @@ def deletePlace(city_name, place_name):
                 name=place_name).one()
         creator = getUserInfo(place_to_delete.user_id)
         # only the authorised user can delete the entry in database
-        if ('username' not in login_session or
-            creator.id != login_session['user_id']):
+        if ('username' not in login_session or creator.id != login_session[
+                'user_id']):
                 return render_template('showdescpublic.html',
                                        this_place=place_to_delete,
                                        this_city=city_name,
